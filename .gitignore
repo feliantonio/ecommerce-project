@@ -1,0 +1,17 @@
+# Credentials — never commit the real config
+config.ini
+
+# PHP / server
+*.log
+error_log
+/vendor/
+
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp

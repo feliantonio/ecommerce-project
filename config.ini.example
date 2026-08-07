@@ -1,0 +1,18 @@
+; Copy this file to config.ini and fill in your local database credentials.
+; config.ini is gitignored and must never be committed.
+
+; Database engine. Currently only "MySql" is wired up in dataDb/dbRepository.php
+; (values "Postgre"/"SqlServer" are recognized but not implemented).
+DbType=MySql
+
+; Database name — see schema.sql to create it.
+DbName=catalogo23_5cat
+
+; DB user with access to DbName. XAMPP's default MySQL user is "root".
+DbUserName=root
+
+; DB user's password. XAMPP's default MySQL root password is empty.
+DbUserPassword=
+
+; DB host. "localhost" for a local XAMPP install.
+DbHost=localhost
