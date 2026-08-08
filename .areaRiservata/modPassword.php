@@ -7,6 +7,6 @@ $mst = new masterPersonale();
 $mst->SetContenuto("modPassword_inc.php");
 $mst->SetAsideLeft(Common::$PathInclude . "AsideLeftAR.php");
 $mst->SetTemplate(Common::$PathTemplates . "templateAreaRis.php");
-$title = "Area Riservata";
+$title = "Modifica Password";
 require_once($mst->GetTemplate());
 ?>

@@ -57,19 +57,36 @@ class DbCatalogo extends DbRepository
         $this -> totRec = $value;
     }
 
-    public function PageParams(string $search, ?int $categoriaId = null, ?int $produttoreId = null)
+    // Nota: la logica di costruzione della WHERE qui sotto deve restare
+    // identica a quella in SelectCatalogo() - sono due query separate
+    // (conteggio totale vs pagina corrente) che devono filtrare sugli
+    // stessi criteri, altrimenti il totale pagine non corrisponde ai
+    // risultati mostrati.
+    public function PageParams(string $search, ?array $categoriaIds = null, ?array $produttoreIds = null)
     {
         try
         {
-            $sql = "SELECT Count(*) from prodotti WHERE prodotto like :search";
+            $sql = "SELECT Count(*) from prodotti WHERE prodotto like :search AND Attivo = 1";
             $param['search'] = "%" . $search . "%";
-            if ($categoriaId !== null) {
-                $sql .= " AND CategoriaId = :categoriaId";
-                $param['categoriaId'] = $categoriaId;
+            if (!empty($categoriaIds)) {
+                $categoriaIds = array_values(array_unique(array_map('intval', $categoriaIds)));
+                $placeholders = [];
+                foreach ($categoriaIds as $i => $id) {
+                    $key = "cat$i";
+                    $placeholders[] = ":$key";
+                    $param[$key] = $id;
+                }
+                $sql .= " AND CategoriaId IN (" . implode(',', $placeholders) . ")";
             }
-            if ($produttoreId !== null) {
-                $sql .= " AND ProduttoreId = :produttoreId";
-                $param['produttoreId'] = $produttoreId;
+            if (!empty($produttoreIds)) {
+                $produttoreIds = array_values(array_unique(array_map('intval', $produttoreIds)));
+                $placeholders = [];
+                foreach ($produttoreIds as $i => $id) {
+                    $key = "prod$i";
+                    $placeholders[] = ":$key";
+                    $param[$key] = $id;
+                }
+                $sql .= " AND ProduttoreId IN (" . implode(',', $placeholders) . ")";
             }
             $sql .= ";";
 
@@ -92,7 +109,7 @@ class DbCatalogo extends DbRepository
     private const ALLOWED_SORT_FIELDS = ['ProdottoID', 'Prodotto', 'Prezzo'];
     private const ALLOWED_SORT_ORDERS = ['ASC', 'DESC'];
 
-    public function SelectCatalogo(string $search , string $sortField , string $sortOrder , int $limit , int $offset , ?int $categoriaId = null , ?int $produttoreId = null) : array
+    public function SelectCatalogo(string $search , string $sortField , string $sortOrder , int $limit , int $offset , ?array $categoriaIds = null , ?array $produttoreIds = null) : array
     {
         try
         {
@@ -102,15 +119,27 @@ class DbCatalogo extends DbRepository
             if (!in_array(strtoupper($sortOrder), self::ALLOWED_SORT_ORDERS, true)) {
                 $sortOrder = 'ASC';
             }
-            $sql = "SELECT * from prodotti WHERE prodotto like :search";
+            $sql = "SELECT * from prodotti WHERE prodotto like :search AND Attivo = 1";
             $param['search'] = "%" . $search . "%";
-            if ($categoriaId !== null) {
-                $sql .= " AND CategoriaId = :categoriaId";
-                $param['categoriaId'] = $categoriaId;
+            if (!empty($categoriaIds)) {
+                $categoriaIds = array_values(array_unique(array_map('intval', $categoriaIds)));
+                $placeholders = [];
+                foreach ($categoriaIds as $i => $id) {
+                    $key = "cat$i";
+                    $placeholders[] = ":$key";
+                    $param[$key] = $id;
+                }
+                $sql .= " AND CategoriaId IN (" . implode(',', $placeholders) . ")";
             }
-            if ($produttoreId !== null) {
-                $sql .= " AND ProduttoreId = :produttoreId";
-                $param['produttoreId'] = $produttoreId;
+            if (!empty($produttoreIds)) {
+                $produttoreIds = array_values(array_unique(array_map('intval', $produttoreIds)));
+                $placeholders = [];
+                foreach ($produttoreIds as $i => $id) {
+                    $key = "prod$i";
+                    $placeholders[] = ":$key";
+                    $param[$key] = $id;
+                }
+                $sql .= " AND ProduttoreId IN (" . implode(',', $placeholders) . ")";
             }
             $sql .= " ORDER BY $sortField $sortOrder LIMIT $limit OFFSET $offset;";
             $rows = parent::Select($sql , $param);
@@ -122,14 +151,15 @@ class DbCatalogo extends DbRepository
         }
     }
 
-    public function DisplayCatalogo(array $ar, string $uTpye) 
+    public function DisplayCatalogo(array $ar, string $uTpye)
     {
+        echo "<div class='row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3'>";
         foreach ($ar as $key => $value) {
             $src = $value['NomeImmagine'];
-            echo "<a href='../.dettaglio/dettaglio.php?id=". $value['ProdottoID'] ."' class='col-auto mb-3 mx-auto' role='button' style='text-decoration: none'>";
-            echo "    <div class='card' style='width: 18rem;'>";
+            echo "<a href='../.dettaglio/dettaglio.php?id=". $value['ProdottoID'] ."' class='col mb-3 text-decoration-none' role='button'>";
+            echo "    <div class='card h-100'>";
             echo "        <img src='../images/$src.jpg' class='card-img-top'>";
-            echo "        <div class='card-body relative'>";
+            echo "        <div class='card-body'>";
             echo "            <h5 class='card-title'>" . htmlspecialchars($value['Prezzo']) . "€</h5>";
             echo "            <p class='card-text text-black'>" . $value['Prodotto'] . "</p>";
             if ($uTpye == "G")
@@ -162,8 +192,9 @@ class DbCatalogo extends DbRepository
             echo "    </div>";
             echo "</a>";
         }
+        echo "</div>";
 
-        echo "<div class='col-3 mx-auto'>";
+        echo "<div class='d-flex justify-content-center mt-3'>";
         echo "  <nav aria-label='Page navigation example'>";
         echo "    <ul class='pagination'>";
         if($this -> currentPage == 1)

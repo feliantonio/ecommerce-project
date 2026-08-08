@@ -53,6 +53,51 @@ class DbProduttore extends DbRepository
             die("ERROR: " . $e -> getMessage() . "[GetAllProduttori]");
         }
     }
+
+    // metodi ad uso esclusivo del pannello admin - vedi nota in dbProdotto.php
+    // sulla scelta di controllare il ruolo anche qui, oltre alla guardia sul
+    // controller .admin/*.php.
+
+    public function InsertProduttore(Produttore $p) : bool
+    {
+        try
+        {
+            if (Common::GetUserType() !== "A") {
+                throw new Exception("Accesso negato: operazione riservata agli amministratori");
+            }
+
+            $sql = "INSERT INTO produttori (Nome, NazioneOrigine) VALUES (:nome, :nazioneOrigine);";
+            $param['nome'] = $p -> GetNome();
+            $param['nazioneOrigine'] = $p -> GetNazioneOrigine();
+
+            return parent::Insert($sql, $param);
+        }
+        catch (Exception $e)
+        {
+            die("ERROR: " . $e -> getMessage() . "[InsertProduttore]");
+        }
+    }
+
+    public function UpdateProduttore(Produttore $p) : bool
+    {
+        try
+        {
+            if (Common::GetUserType() !== "A") {
+                throw new Exception("Accesso negato: operazione riservata agli amministratori");
+            }
+
+            $sql = "UPDATE produttori SET Nome = :nome, NazioneOrigine = :nazioneOrigine WHERE ProduttoreId = :id;";
+            $param['nome'] = $p -> GetNome();
+            $param['nazioneOrigine'] = $p -> GetNazioneOrigine();
+            $param['id'] = $p -> GetProduttoreId();
+
+            return parent::Update($sql, $param);
+        }
+        catch (Exception $e)
+        {
+            die("ERROR: " . $e -> getMessage() . "[UpdateProduttore]");
+        }
+    }
 }
 
 ?>

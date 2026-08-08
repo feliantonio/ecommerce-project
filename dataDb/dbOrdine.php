@@ -105,6 +105,38 @@ class DbOrdine extends DbRepository
             die("ERROR: " . $e -> getMessage() . "[GetDettagliOrdine]");
         }
     }
+
+    // uso esclusivo del pannello admin (vedi nota in dbProdotto.php sul
+    // controllo del ruolo anche a livello dati) - ordini di TUTTI gli utenti,
+    // non solo quello loggato.
+    public function GetAllOrdini() : array
+    {
+        try
+        {
+            if (Common::GetUserType() !== "A") {
+                throw new Exception("Accesso negato: operazione riservata agli amministratori");
+            }
+
+            $sql = "SELECT * FROM ordini ORDER BY DataOrdine DESC;";
+            $rows = parent::Select($sql) ?? [];
+            $ordini = [];
+            foreach ($rows as $row) {
+                $o = new Ordine;
+                $o -> SetOrdineId($row['OrdineId']);
+                $o -> SetUtenteId($row['UtenteId']);
+                $o -> SetDataOrdine($row['DataOrdine']);
+                $o -> SetImponibile($row['Imponibile']);
+                $o -> SetIva($row['Iva']);
+                $o -> SetTotale($row['Totale']);
+                $ordini[] = $o;
+            }
+            return $ordini;
+        }
+        catch (Exception $e)
+        {
+            die("ERROR: " . $e -> getMessage() . "[GetAllOrdini]");
+        }
+    }
 }
 
 ?>

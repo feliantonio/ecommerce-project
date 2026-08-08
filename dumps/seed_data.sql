@@ -1,30 +1,59 @@
--- seed_prodotti.sql
--- Sample product data built from the images already in /images, now with
--- real relations into categorie/produttori (see seed_categorie.sql and
--- seed_produttori.sql — import those two first, prodotti has FK
--- constraints on both CategoriaId and ProduttoreId).
+-- seed_data.sql
+-- Sample catalog data: categorie, produttori, prodotti (in that order —
+-- prodotti has FK constraints on both). Deliberately excludes utenti,
+-- carrello, ordini, ordine_dettagli: those are per-user data, created
+-- naturally the first time someone registers/shops, not shipped as fixtures.
 --
--- NomeImmagine matches each filename WITHOUT the .jpg extension, since
--- dataDb/dbCatalogo.php renders <img src="../images/$NomeImmagine.jpg">.
--- logoShopping.png is the site logo, not a product, so it's excluded.
+-- Run against a database that already has the tables (see schema.sql), or
+-- just use full_dump.sql to get schema + this data in one shot:
+--   mysql -u root catalogo23_5cat < seed_data.sql
 --
--- Import order: seed_categorie.sql, seed_produttori.sql, then this file.
---   mysql -u root catalogo23_5cat < seed_categorie.sql
---   mysql -u root catalogo23_5cat < seed_produttori.sql
---   mysql -u root catalogo23_5cat < seed_prodotti.sql
---
--- CategoriaId reference (matches seed_categorie.sql insertion order):
+-- CategoriaId reference (insertion order below):
 --   1  Notebook           6  Monitor            11 Stampante Laser
 --   2  PC Desktop         7  Tastiera           12 Multifunzione Inkjet
 --   3  All in One         8  Mouse              13 Multifunzione Laser
 --   4  Chromebook         9  Kit Tastiera e Mouse
 --   5  Tablet            10  Stampante Inkjet
--- ProduttoreId reference (matches seed_produttori.sql insertion order):
+-- ProduttoreId reference (insertion order below):
 --   1 Lenovo   4 HP         7 Samsung    10 Epson    13 MSI
 --   2 Asus     5 Acer       8 Logitech   11 Canon
 --   3 Dell     6 Apple      9 Microsoft  12 Brother
+--
+-- NomeImmagine matches each filename WITHOUT the .jpg extension, since
+-- dataDb/dbCatalogo.php renders <img src="../images/$NomeImmagine.jpg">.
+-- logoShopping.png is the site logo, not a product, so it's excluded.
 
 USE catalogo23_5cat;
+
+INSERT INTO categorie (Nome, Descrizione) VALUES
+('Notebook',                  'Computer portatili per uso quotidiano, lavoro e studio.'),
+('PC Desktop',                'Computer fissi da scrivania, per casa, ufficio o gaming.'),
+('All in One',                'Computer con schermo e componenti integrati in un unico corpo.'),
+('Chromebook',                'Notebook leggeri basati su ChromeOS, pensati per il web e lo studio.'),
+('Tablet',                    'Dispositivi touch portatili per navigazione, intrattenimento e produttività.'),
+('Monitor',                   'Schermi esterni per PC e notebook, da ufficio a gaming.'),
+('Tastiera',                  'Tastiere cablate e wireless, standard e meccaniche.'),
+('Mouse',                     'Mouse cablati e wireless, per uso quotidiano e gaming.'),
+('Kit Tastiera e Mouse',      'Set combinati di tastiera e mouse venduti insieme.'),
+('Stampante Inkjet',          'Stampanti a getto d''inchiostro per la casa e il piccolo ufficio.'),
+('Stampante Laser',           'Stampanti laser per stampe ad alto volume e alta velocità.'),
+('Multifunzione Inkjet',      'Stampanti inkjet con funzioni di scansione e copia integrate.'),
+('Multifunzione Laser',       'Stampanti laser con funzioni di scansione e copia integrate.');
+
+INSERT INTO produttori (Nome, NazioneOrigine) VALUES
+('Lenovo',    'Cina'),
+('Asus',      'Taiwan'),
+('Dell',      'Stati Uniti'),
+('HP',        'Stati Uniti'),
+('Acer',      'Taiwan'),
+('Apple',     'Stati Uniti'),
+('Samsung',   'Corea del Sud'),
+('Logitech',  'Svizzera'),
+('Microsoft', 'Stati Uniti'),
+('Epson',     'Giappone'),
+('Canon',     'Giappone'),
+('Brother',   'Giappone'),
+('MSI',       'Taiwan');
 
 INSERT INTO prodotti (Prodotto, Descrizione, Um, Prezzo, ProduttoreId, CategoriaId, NomeImmagine, Attivo) VALUES
 ('Notebook Ultrabook 14"',        'Notebook leggero e sottile, ideale per l''uso quotidiano.',            'pz', 699.99,  1, 1, 'NOTEBOOK_1', 1),

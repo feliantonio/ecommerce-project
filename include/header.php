@@ -12,8 +12,10 @@ $sort_order = isset($_GET['order']) ? ($_GET['order']) : 'ASC';
 $catal->SetCurrentPage(isset($_GET['page']) ? (int)($_GET['page']) : 1);
 // echo $catal->GetCurrentPage();
 $search = isset($_GET['search']) ? ($_GET['search']) : '';
-$categoriaId = isset($_GET['categoria']) && $_GET['categoria'] !== '' ? (int)$_GET['categoria'] : null;
-$produttoreId = isset($_GET['produttore']) && $_GET['produttore'] !== '' ? (int)$_GET['produttore'] : null;
+// (array) normalizza sia il vecchio link a valore singolo (?categoria=5)
+// sia il nuovo multi-select (?categoria[]=1&categoria[]=2) allo stesso formato.
+$categoriaIds = !empty($_GET['categoria']) ? array_map('intval', (array)$_GET['categoria']) : null;
+$produttoreIds = !empty($_GET['produttore']) ? array_map('intval', (array)$_GET['produttore']) : null;
 
 // numero di articoli nel carrello, per il badge sull'icona (solo utenti loggati)
 $cartCount = 0;
@@ -29,7 +31,7 @@ if ($_SESSION['UserType'] != 'G') {
         <img src="../images/logoShopping.png" alt="logo" class="rounded">
     </div>
 
-    <div class="col-6">
+    <div class="col-5">
 
         <form class="d-flex row" action="" method="get">
 
@@ -58,6 +60,17 @@ if ($_SESSION['UserType'] != 'G') {
                     </button>
                 </div>
             </div>
+
+            <?php // preserva i filtri categoria/produttore attivi: senza questi
+            // hidden, inviare questo form (cambio sort/ricerca) cancellerebbe
+            // in silenzio la selezione fatta in asideLeft.php. ?>
+            <?php foreach (($categoriaIds ?? []) as $catId) { ?>
+                <input type="hidden" name="categoria[]" value="<?= (int)$catId ?>">
+            <?php } ?>
+            <?php foreach (($produttoreIds ?? []) as $prodId) { ?>
+                <input type="hidden" name="produttore[]" value="<?= (int)$prodId ?>">
+            <?php } ?>
+            <input type="hidden" name="page" value="1">
 
         </form>
 
@@ -106,6 +119,16 @@ if ($_SESSION['UserType'] != 'G') {
             <?php } ?>
         </a>
     </div>
+
+    <?php if ($_SESSION['UserType'] == "A") { ?>
+        <div class="col-1 text-center">
+            <a href="../.admin/index.php" title="Pannello Admin">
+                <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" fill="currentColor" class="mt-1 bi bi-gear-fill" viewBox="0 0 16 16">
+                    <path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z" />
+                </svg>
+            </a>
+        </div>
+    <?php } ?>
 </div>
 
 <div class=row>

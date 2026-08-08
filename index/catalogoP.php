@@ -11,19 +11,14 @@
 // var_dump($ar);
 
 ?>
-<div class="row">
+<?php
 
-    <a href="" role="button" style="text-decoration: none">
-        <?php
-
-        $catal->PageParams($search, $categoriaId, $produttoreId);
-        $offset = ($catal->GetCurrentPage() - 1) * $catal->GetRecXPage();
-        $ar = $catal->SelectCatalogo($search, $sort_field, $sort_order, $catal->GetRecXPage(), $offset, $categoriaId, $produttoreId);
-        if (!isset($_GET['id'])) {
-            $catal->DisplayCatalogo($ar, Common::GetUserType());
-        } else {
-            echo $_GET['id'];
-        }
-        ?>
-    </a>
-</div>
+$catal->PageParams($search, $categoriaIds, $produttoreIds);
+$offset = ($catal->GetCurrentPage() - 1) * $catal->GetRecXPage();
+$ar = $catal->SelectCatalogo($search, $sort_field, $sort_order, $catal->GetRecXPage(), $offset, $categoriaIds, $produttoreIds);
+if (!isset($_GET['id'])) {
+    $catal->DisplayCatalogo($ar, Common::GetUserType());
+} else {
+    echo $_GET['id'];
+}
+?>

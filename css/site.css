@@ -1,0 +1,53 @@
+/*
+ * Shared stylesheet for the site.
+ * Loaded after the Bootstrap CDN link in every templates/*.php shell.
+ * Keep this file small: only rules that centralize something that was
+ * previously duplicated or hardcoded inline across pages belong here.
+ */
+
+/* Required-field marker and form-input focus state (were duplicated
+   identically inline in login_inc.php / utenteRegistrazione_inc.php) */
+.controlloObbligatorio {
+    color: red;
+}
+
+.ctrlinput:focus {
+    background-color: antiquewhite;
+}
+
+/* Sticky footer: keeps the footer pinned to the bottom on short-content
+   pages instead of floating mid-page. Replaces the old dead/commented-out
+   `#footer { position: absolute; bottom: 0; }` rule that used to live,
+   duplicated, in every template. */
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+body > .container {
+    flex: 1 0 auto;
+}
+
+#footer {
+    flex-shrink: 0;
+}
+
+/* Shared "page title bar" used by account pages and the cart page, replacing
+   several inconsistent ad hoc `row col-*` wrappers around the same heading. */
+.page-title-bar {
+    margin-bottom: 1rem;
+}
+
+.page-title-bar h2 {
+    margin-bottom: 0;
+}
+
+/* Consistent header icon size (person icon was 45x45, cart icon 38x38). */
+.icon-nav {
+    width: 32px;
+    height: 32px;
+}
