@@ -2,24 +2,26 @@
 
 $dbO = new DbOrdine();
 $dbP = new DbProdotto();
-$ordini = $dbO->GetOrdiniByUtente(Common::GetUserId());
+$dbU = new DbUtente();
+$ordini = $dbO->GetAllOrdini();
 
 ?>
 
 <?php if (count($ordini) == 0) { ?>
-    <p class="text-muted">Non hai ancora effettuato ordini.</p>
+    <p class="text-muted">Non è ancora stato effettuato nessun ordine.</p>
 <?php } ?>
 
 <div class="accordion" id="accordionOrdini">
     <?php foreach ($ordini as $ordine) {
         $panelId = "ordine" . $ordine->GetOrdineId();
         $dettagli = $dbO->GetDettagliOrdine($ordine->GetOrdineId());
+        $cliente = $dbU->GetUtenteById($ordine->GetUtenteId());
     ?>
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#<?= $panelId ?>">
-                    Ordine #<?= $ordine->GetOrdineId() ?> — <?= htmlspecialchars($ordine->GetDataOrdine()) ?>
-                    — Totale: <?= number_format($ordine->GetTotale(), 2, ',', '.') ?>€
+                    Ordine #<?= $ordine->GetOrdineId() ?> — Cliente: <?= htmlspecialchars($cliente->GetNome() . " " . $cliente->GetCognome()) ?> (<?= htmlspecialchars($cliente->GetMail()) ?>)
+                    — <?= htmlspecialchars($ordine->GetDataOrdine()) ?> — Totale: <?= number_format($ordine->GetTotale(), 2, ',', '.') ?>€
                 </button>
             </h2>
             <div id="<?= $panelId ?>" class="accordion-collapse collapse">

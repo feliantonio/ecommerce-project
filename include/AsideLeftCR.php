@@ -1,15 +1,19 @@
-<h6>Gestione carrello</h6>
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Gestione carrello</h5>
 
-<div class="d-grid gap-2 mb-3">
-    <button type="submit" form="cartItemsForm" name="deleteSelected" value="1" id="btnEliminaSelezionati" class="btn btn-outline-danger btn-sm" disabled>
-        Elimina selezionati
-    </button>
+        <div class="d-grid gap-2 mb-3">
+            <button type="submit" form="cartItemsForm" name="deleteSelected" value="1" id="btnEliminaSelezionati" class="btn btn-outline-danger btn-sm" disabled>
+                Elimina selezionati
+            </button>
 
-    <form method="post" action="" onsubmit="return confirm('Vuoi davvero svuotare tutto il carrello?');">
-        <button type="submit" name="deleteAllCart" value="1" class="btn btn-danger btn-sm w-100">
-            Elimina tutto
-        </button>
-    </form>
+            <form method="post" action="" onsubmit="return confirm('Vuoi davvero svuotare tutto il carrello?');">
+                <button type="submit" name="deleteAllCart" value="1" class="btn btn-danger btn-sm w-100">
+                    Elimina tutto
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
 
 <script>

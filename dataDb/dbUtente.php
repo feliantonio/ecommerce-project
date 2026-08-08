@@ -184,4 +184,42 @@ class DbUtente extends DbRepository
             die("ERROR: impossibile aggiornare la password[UpdatePsw]" . $e->getMessage());
         }
     }
+
+    // uso esclusivo del pannello admin (vedi nota in dbProdotto.php sul
+    // controllo del ruolo anche a livello dati) - serve a risolvere il nome
+    // dell'acquirente nella pagina "tutti gli ordini".
+    public function GetUtenteById(int $id) : Utente
+    {
+        try
+        {
+            if (Common::GetUserType() !== "A") {
+                throw new Exception("Accesso negato: operazione riservata agli amministratori");
+            }
+
+            $sql = "SELECT * FROM utenti WHERE UtenteId = :id;";
+            $param['id'] = $id;
+            $rows = parent::Select($sql, $param);
+            if ($rows == null || count($rows) == 0)
+            {
+                throw new Exception("Utente non trovato (ID: $id)");
+            }
+            $row = $rows[0];
+
+            $u = new Utente;
+            $u -> SetUtenteId($row['UtenteId']);
+            $u -> SetNome($row['Nome']);
+            $u -> SetCognome($row['Cognome']);
+            $u -> SetMail($row['Mail']);
+            $u -> SetTelefono($row['Telefono']);
+            $u -> SetTipoUtente($row['TipoUtente']);
+            $u -> SetIndirizzo($row['Indirizzo']);
+            $u -> SetProvincia($row['Provincia']);
+            $u -> SetCap($row['Cap']);
+            return $u;
+        }
+        catch (Exception $e)
+        {
+            die("ERROR: " . $e -> getMessage() . "[GetUtenteById]");
+        }
+    }
 }

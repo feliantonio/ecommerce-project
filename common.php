@@ -56,6 +56,18 @@ class Common{
     public static function GetUserType():string{return $_SESSION["UserType"];}
     public static function GetUserMail():string{return $_SESSION["UserMail"];}
 
+    // Guardia di pagina per le controller .admin/*.php: da chiamare come prima
+    // riga dopo require_once common.php. Se l'utente non e' admin, mostra una
+    // pagina di accesso negato ed esce subito - nessun $mst/template esiste
+    // ancora a questo punto della richiesta.
+    public static function RequireAdmin(): void
+    {
+        if (self::GetUserType() != "A") {
+            require(self::$PathInclude . "accessoNegato.php");
+            exit;
+        }
+    }
+
     // Unisce i parametri della querystring corrente con $overrides (i valori
     // di $overrides vincono in caso di conflitto) e restituisce una stringa
     // "?chiave=valore&..." pronta per un href. Usata per non perdere

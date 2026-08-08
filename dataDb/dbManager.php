@@ -65,7 +65,7 @@ class DbManager implements IDBManager
             if ($con != null && $con->inTransaction()) 
             {
                 $con->rollback();
-                die("Canccellazione non riuscita [DELETE]: " . $e->getMessage());
+                die("Cancellazione non riuscita [DELETE]: " . $e->getMessage());
             }
             // errore prima di transaction
             die(" " . $e->getMessage());

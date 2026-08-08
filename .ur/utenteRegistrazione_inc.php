@@ -1,22 +1,3 @@
-<style>
-    .controlloObbligatorio {
-        color: red;
-    }
-
-    .ctrlinput:focus {
-        background-color: antiquewhite;
-    }
-
-    /* .ctrlinput:invalid {
-            border-color: red;
-        }
-
-        .ctrlinput:valid {
-            border-color: green;
-        } */
-</style>
-
-
 <!-- ####################################### -->
 <?php
 $pass1 = "";

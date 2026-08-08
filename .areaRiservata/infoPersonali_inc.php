@@ -32,16 +32,12 @@ if (isset($_POST['USubmit'])) {
 
     if($db -> UpdateUser($u))
     {
-        echo "utente aggiornato";
+        echo "<div class='alert alert-success' role='alert'>Utente aggiornato</div>";
     }
 
 }
 
 ?>
-
-<div class="row col-4 mb-2">
-    <h2 class="shadow bg-primary rounded text-white text-center">Il Mio Account</h2>
-</div>
 
 <form class="row g-3" action="" method="post">
 

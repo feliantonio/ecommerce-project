@@ -126,13 +126,13 @@ class DbCarrello extends DbRepository
 
         echo "<div class='card border-primary mx-auto mb-3' style='max-width: 580px;'>";
         echo "    <div class='row g-0'>";
-        echo "        <div class='col-md-1 d-flex align-items-center justify-content-center'>";
+        echo "        <div class='col-12 col-md-1 d-flex align-items-center justify-content-center'>";
         echo "        <input type='checkbox' class='form-check-input' form='cartItemsForm' name='selected[]' value='" . $c->GetCarrelloId() . "' aria-label='Seleziona articolo'>";
         echo "        </div>";
-        echo "        <div class='col-md-3'>";
+        echo "        <div class='col-12 col-md-3'>";
         echo "        <img src='../images/$src.jpg' class='img-fluid rounded-start'>";
         echo "        </div>";
-        echo "        <div class='col-md-8'>";
+        echo "        <div class='col-12 col-md-8'>";
         echo "        <div class='card-body'>";
         echo "            <h5 class='card-title text-primary-emphasis'>". htmlspecialchars($p->GetProdotto()) ."</h5>";
         echo "            <p class='card-text text-black'>". htmlspecialchars($p->GetDescrizione()) ."</p>";
