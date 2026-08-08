@@ -10,10 +10,8 @@
 -- or import via phpMyAdmin (create the database first, or let the
 -- CREATE DATABASE statement below do it).
 --
--- If you already ran an earlier version of this file (without
--- categorie/produttori), use schema_produttori_categorie.sql instead —
--- it adds just those tables + FK constraints to an existing database.
--- Similarly, if you're missing ordini/ordine_dettagli, use schema_ordini.sql.
+-- Schema only, no data — see seed_data.sql for sample categorie/produttori/
+-- prodotti, or full_dump.sql to get both in one file/command.
 
 CREATE DATABASE IF NOT EXISTS catalogo23_5cat
     CHARACTER SET utf8mb4

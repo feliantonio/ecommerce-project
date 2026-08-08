@@ -10,6 +10,9 @@ common.php                    → bootstrap: session, config, core requires
   ├── models/                  → plain data objects (no DB knowledge)
   ├── dataDb/                  → data access (the only layer that talks SQL)
   ├── templates/ + include/    → view fragments (pure HTML/PHP output)
+  ├── css/, images/            → plain static assets, fetched directly by the browser
+  │                              (not require_once'd like include/ — see the
+  │                              UX-pass note in "Where the boundaries leak" below)
   └── entry points (index.php, dettaglio.php, carrello.php, ...)
 ```
 
@@ -57,7 +60,7 @@ Pure data holders, zero DB awareness. The convention, followed exactly the same 
 
 `MasterBase` is a slot container — it just holds strings for `header`, `footer`, `asideLeft`, `asideRight`, `nav`, `contenuto`, and `template`, each with a `Get`/`Set` pair defaulting to `""`. It doesn't render anything itself.
 
-Concrete subclasses (`MasterHome`, `MasterDettaglio`, `MasterCarrello`, `MasterPersonale`) preconfigure which `include/` fragments go into which slots — e.g. `MasterHome` wires up `header.php` + `asideLeft.php` + `asideRight.php` + `nav.php` + `footer.php`; `MasterDettaglio` only wires `headerP.php` (a lighter header) and leaves the rest empty, since a product detail page doesn't need the full catalog sidebar chrome.
+Concrete subclasses (`MasterHome`, `MasterDettaglio`, `MasterCarrello`, `MasterPersonale`, `MasterAdmin`) preconfigure which `include/` fragments go into which slots — e.g. `MasterHome` wires up `header.php` + `asideLeft.php` + `footer.php`; `MasterDettaglio` only wires `headerP.php` (a lighter header) and leaves the rest empty, since a product detail page doesn't need the full catalog sidebar chrome. `MasterAdmin` (the admin panel's master) is a near-copy of `MasterPersonale` — same `headerP.php` + `footer.php`, its own `AsideLeftAdmin.php` set per-controller — since the two page families share the same "back button + title bar, sidebar nav, plain content" shape and there was no reason to invent a new template for it (both reuse `templates/templateAreaRis.php` as-is).
 
 An **entry-point script** (`index/index.php`, `.dettaglio/dettaglio.php`, `.carrello/carrello.php`, ...) is the actual controller for one page:
 1. `require_once common.php` — this alone starts the session, loads `config.ini` into `$_SESSION`, and pulls in `DbManager`/`DbRepository`/`MasterBase`.
@@ -88,9 +91,32 @@ and for the product detail page, the same shape, just a lighter master and a dif
 
 Note that fetching a product's category and producer is **three separate round-trips** (`GetProdById`, `GetCategoriaById`, `GetProduttoreById`), not a SQL `JOIN` — consistent with the rest of the codebase, where every repo method maps exactly one table per query. It's simple and easy to follow, at the cost of N+1-style query counts on anything relational.
 
+## Access control: guests, users, admins
+
+Three roles live in `$_SESSION["UserType"]`: `"G"` (guest, never persisted — set by `Common::SetSession()` on a fresh session), `"U"` (registered user), `"A"` (admin). `Common::GetUserType()`/`SetUserType()` are the only accessors; `DbUtente::Login()` sets it from the `utenti.TipoUtente` column read at login and never re-checks it per-request, so promoting/demoting a user (`UPDATE utenti SET TipoUtente=...`, there is no promotion UI) only takes effect on that user's *next* login, not their current session.
+
+Two different guard shapes exist, at two different granularities:
+
+- **Action-level guard** (the older, more common one): an inline `if (Common::GetUserType() != "G") { ... }` wrapping a specific POST-handling block *inside* an already-rendering page — e.g. `index/index.php`'s add-to-cart handler, `.carrello/carrello.php`'s cart-mutation block. The rest of the page (browsing, viewing) stays reachable by anyone; only the mutating action is gated.
+- **Page-level guard** (introduced for the admin panel): `Common::RequireAdmin()`, called as literally the first line after `require_once common.php` in every `.admin/*.php` controller:
+  ```php
+  require_once(".." . DIRECTORY_SEPARATOR . "common.php");
+  Common::RequireAdmin();
+  ```
+  If the session isn't `"A"`, it `require`s `include/accessoNegato.php` (a self-contained HTML fragment with its own `<head>` — it runs before any `$mst`/template object exists) and `exit`s. This is the only place in the codebase that gates an entire page rather than one action inside it. Note `.areaRiservata/*` pages (account info, password, order history) still have *no* page-level guard at all — a guest hitting them directly would hit undefined-`$_SESSION` warnings rather than a clean denial; the admin panel is the first page family to actually close that hole, just not retroactively for the older account pages.
+
+**Defense-in-depth in the data layer.** Every new repo method that exists solely for the admin panel (`DbProdotto::InsertProdotto/UpdateProdotto/SetAttivo/GetAllProdotti`, `DbCategoria::InsertCategoria/UpdateCategoria`, `DbProduttore::InsertProduttore/UpdateProduttore`, `DbOrdine::GetAllOrdini`, `DbUtente::GetUtenteById`) *also* checks the role itself, as the first line inside its own `try`:
+```php
+if (Common::GetUserType() !== "A") {
+    throw new Exception("Accesso negato: operazione riservata agli amministratori");
+}
+```
+This is a deliberate, scoped exception to how every other repo method in the codebase behaves: elsewhere (`DbCarrello::DeleteSelected()`, etc.) the repo trusts its caller entirely and relies solely on the controller's guard — permissions are never the data layer's concern. The admin-only methods break that rule on purpose, so that even a future code path calling one of them without going through `Common::RequireAdmin()` still gets refused (verified: a session with `UserType='U'` calling `DbCategoria::InsertCategoria()` directly still `die()`s with "Accesso negato", never reaching the `INSERT`).
+
 ## Where the boundaries are respected (and where they leak)
 
 - Entry points never touch PDO directly — good, the layering holds.
 - View fragments (`*_inc.php`, `templates/*`) generally just read from already-built model objects/arrays — with the one now-fixed exception being `dettaglio_inc.php`, which used to ignore its model entirely and hard-code markup.
-- `include/header.php` is the one file that blurs controller/view — it reads `$_GET` directly (sort/order/search) inside what's nominally a view fragment, which is why the SQL-injection/XSS fixes had to reach into it rather than staying purely in the data layer.
+- `include/header.php` is the one file that blurs controller/view — it reads `$_GET` directly (sort/order/search/`categoria[]`/`produttore[]`) inside what's nominally a view fragment, which is why the SQL-injection/XSS fixes had to reach into it rather than staying purely in the data layer. Every `_inc.php` view fragment that has a form on it follows the same blurred pattern for its own POST: `infoPersonali_inc.php`, `modPassword_inc.php`, and every new `.admin/*_inc.php` (`prodottoForm_inc.php`, `categoriaForm_inc.php`, etc.) read `$_POST` and call repo Insert/Update methods directly in the view fragment, not in the controller. This is consistent throughout the codebase, not a one-off: the controller's job is wiring up the `Master*`/template, the `_inc.php`'s job is everything else for that page.
 - `index/catalogoProdotti.php` (the dead file) breaks every convention at once — inline PDO connection, raw string-built SQL, no model/repo — which is a good marker that it predates (or was abandoned in favor of) this pattern rather than being part of it.
+- Category/producer filtering (`DbCatalogo::PageParams()`/`SelectCatalogo()`) takes `?array $categoriaIds`/`?array $produttoreIds` and builds `IN (:cat0, :cat1, ...)`/`IN (:prod0, :prod1, ...)` clauses with per-element named placeholders — the same dynamic-placeholder shape as `DbCarrello::DeleteSelected()`'s `IN (...)` builder, just duplicated (by necessity: `PageParams()`'s count query and `SelectCatalogo()`'s row query build the same WHERE independently, and must be kept in sync by hand — there's no shared WHERE-builder helper).
