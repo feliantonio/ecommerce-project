@@ -71,7 +71,7 @@ type dumps\schema.sql dumps\seed_data.sql > dumps\full_dump.sql
 ```
 (On the Bash/Git Bash shell this session used: `cat dumps/schema.sql dumps/seed_data.sql > dumps/full_dump.sql`.)
 
-## Known limitations / honest notes
+## Known limitations
 
 This was a learning project — a few things are intentionally left as-is rather than polished:
 
